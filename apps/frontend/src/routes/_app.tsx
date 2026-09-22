@@ -50,6 +50,9 @@ function AppLayout() {
 					<Link to="/" activeOptions={{ exact: true }} className={navLinkClass}>
 						Dashboard
 					</Link>
+					<Link to="/profile" className={navLinkClass}>
+						Profil
+					</Link>
 					<div className="ml-auto flex items-center gap-3">
 						<span className="text-muted-fg text-sm">{user?.username}</span>
 						<Button
