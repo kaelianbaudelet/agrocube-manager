@@ -110,6 +110,92 @@ test("logout : supprime la session (refresh et access invalidés)", async () => 
 	assert.equal((await call("POST", "/auth/logout", { token: auth.access })).status, 401);
 });
 
+const login = async (email: string, password: string) => {
+	const r = await call("POST", "/auth/login", { body: { email, password } });
+	assert.equal(r.status, 200, `login ${email}: ${JSON.stringify(r.body)}`);
+	return { access: r.body.accessToken as string, refresh: r.body.refreshToken as string };
+};
+
+test("GET /users/me sans token → 401", async () => {
+	assert.equal((await call("GET", "/users/me")).status, 401);
+});
+
+test("GET /users/me renvoie l'utilisateur sans mot de passe", async () => {
+	const s = await login(alice.email, PASSWORD);
+	const r = await call("GET", "/users/me", { token: s.access });
+	assert.equal(r.status, 200);
+	assert.equal(r.body.username, alice.username);
+	assert.equal(r.body.password, undefined);
+});
+
+test("PATCH /users/me met à jour le profil (email normalisé)", async () => {
+	const s = await login(alice.email, PASSWORD);
+	const newUsername = `alicia_${suffix}`;
+	const newEmail = `alicia_${suffix}@test.dev`;
+	const r = await call("PATCH", "/users/me", {
+		token: s.access,
+		body: { firstName: "Alicia", username: newUsername, email: newEmail.toUpperCase() }
+	});
+	assert.equal(r.status, 200, JSON.stringify(r.body));
+	assert.equal(r.body.firstName, "Alicia");
+	assert.equal(r.body.username, newUsername);
+	assert.equal(r.body.email, newEmail);
+	alice.username = newUsername;
+	alice.email = newEmail;
+});
+
+test("PATCH /users/me avec ses propres valeurs → 200 (pas 409)", async () => {
+	const s = await login(alice.email, PASSWORD);
+	const r = await call("PATCH", "/users/me", {
+		token: s.access,
+		body: { username: alice.username, email: alice.email, firstName: "Alicia", lastName: "Test" }
+	});
+	assert.equal(r.status, 200, JSON.stringify(r.body));
+});
+
+test("PATCH /users/me avec l'email ou le username d'un autre → 409", async () => {
+	const s = await login(alice.email, PASSWORD);
+	const byEmail = await call("PATCH", "/users/me", { token: s.access, body: { email: bob.email } });
+	assert.equal(byEmail.status, 409);
+	assert.match(String(byEmail.body.message), /email/i);
+	const byUsername = await call("PATCH", "/users/me", { token: s.access, body: { username: bob.username } });
+	assert.equal(byUsername.status, 409);
+});
+
+test("PATCH /users/me avec un username invalide → 400", async () => {
+	const s = await login(alice.email, PASSWORD);
+	assert.equal((await call("PATCH", "/users/me", { token: s.access, body: { username: "a" } })).status, 400);
+});
+
+test("PATCH /users/me/password : mot de passe actuel faux → 400", async () => {
+	const s = await login(bob.email, PASSWORD);
+	const r = await call("PATCH", "/users/me/password", {
+		token: s.access,
+		body: { currentPassword: "Wrong123!pass", newPassword: "NewPassword123!" }
+	});
+	assert.equal(r.status, 400);
+});
+
+test("PATCH /users/me/password : change le mdp et révoque les autres sessions", async () => {
+	const current = await login(bob.email, PASSWORD);
+	const other = await login(bob.email, PASSWORD);
+	const NEW = "NewPassword123!";
+	const r = await call("PATCH", "/users/me/password", {
+		token: current.access,
+		body: { currentPassword: PASSWORD, newPassword: NEW }
+	});
+	assert.equal(r.status, 204, JSON.stringify(r.body));
+	assert.equal((await call("GET", "/users/me", { token: current.access })).status, 200, "session courante conservée");
+	assert.equal((await call("GET", "/users/me", { token: other.access })).status, 401, "autre access révoqué");
+	assert.equal((await call("POST", "/auth/refresh", { token: other.refresh })).status, 401, "autre refresh révoqué");
+	assert.equal(
+		(await call("POST", "/auth/login", { body: { email: bob.email, password: PASSWORD } })).status,
+		401,
+		"ancien mdp refusé"
+	);
+	await login(bob.email, NEW);
+});
+
 // ---- runner ----
 
 async function main() {
