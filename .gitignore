@@ -1,0 +1,10 @@
+node_modules
+dist
+.turbo
+*.tsbuildinfo
+coverage
+.env
+.env.local
+apps/backend/generated
+.DS_Store
+.superpowers
