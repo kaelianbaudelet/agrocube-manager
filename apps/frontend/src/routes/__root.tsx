@@ -11,7 +11,7 @@ function RootLayout() {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<Outlet />
-			<Toaster richColors position="top-right" />
+			<Toaster theme="dark" position="top-right" />
 		</QueryClientProvider>
 	);
 }

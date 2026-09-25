@@ -1,23 +1,28 @@
-import { ExecutionContext, Injectable } from "@nestjs/common";
+import { type ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
+import { SESSION_ONLY_KEY } from "../decorators/session-only.decorator";
+import type { AuthUser } from "../types";
 
 /**
- * Global guard: every route requires a valid access token unless marked @Public().
+ * Global guard: every route requires a valid access token (JWT) or personal API key unless marked @Public().
+ * Routes marked @SessionOnly() refuse API keys.
  */
 @Injectable()
-export class JwtAuthGuard extends AuthGuard("jwt") {
+export class JwtAuthGuard extends AuthGuard(["jwt", "api-key"]) {
 	constructor(private readonly reflector: Reflector) {
 		super();
 	}
 
-	canActivate(context: ExecutionContext) {
-		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-			context.getHandler(),
-			context.getClass()
-		]);
-		if (isPublic) return true;
-		return super.canActivate(context);
+	async canActivate(context: ExecutionContext) {
+		const targets = [context.getHandler(), context.getClass()];
+		if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, targets)) return true;
+		await super.canActivate(context);
+		const user: AuthUser = context.switchToHttp().getRequest().user;
+		if (user.apiKeyId && this.reflector.getAllAndOverride<boolean>(SESSION_ONLY_KEY, targets)) {
+			throw new ForbiddenException("Action réservée à une session utilisateur (pas de clé API)");
+		}
+		return true;
 	}
 }

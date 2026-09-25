@@ -14,7 +14,7 @@ cp apps/backend/.env.example apps/backend/.env      # changer les secrets JWT (o
 cp apps/frontend/.env.example apps/frontend/.env
 docker compose -f docker-compose.dev.yml up -d      # Postgres sur localhost:5433
 pnpm db:migrate                                     # applique les migrations
-pnpm dev                                            # API :3001, front :5173
+pnpm dev                                            # API :3000, front :5173
 ```
 
 ## Scripts

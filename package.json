@@ -10,7 +10,8 @@
 		"typecheck": "turbo run typecheck",
 		"db:migrate": "pnpm --filter @workshop/backend db:migrate:dev",
 		"db:studio": "pnpm --filter @workshop/backend db:studio",
-		"smoke": "pnpm --filter @workshop/backend smoke"
+		"smoke": "pnpm --filter @workshop/backend smoke",
+		"mock": "pnpm --filter @workshop/backend device:mock"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.11",

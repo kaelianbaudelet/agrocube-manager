@@ -3,8 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { FormField } from "@/components/form-field";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { HudButton } from "@/components/hud/hud-button";
+import { HudPanel } from "@/components/hud/panel";
 import { usersApi } from "@/lib/endpoints";
 import { type FieldErrors, validate } from "@/lib/form";
 
@@ -43,13 +43,10 @@ export function PasswordForm() {
 	}
 
 	return (
-		<Card>
-			<CardHeader
-				title="Mot de passe"
-				description="12 caractères min., avec majuscule, minuscule, chiffre et symbole"
-			/>
-			<form onSubmit={onSubmit} noValidate>
-				<CardContent className="space-y-4">
+		<HudPanel title="Sécurité" bodyClassName="flex flex-col p-3">
+			<p className="mb-3 text-muted-fg text-xs">12 caractères min., avec majuscule, minuscule, chiffre et symbole</p>
+			<form onSubmit={onSubmit} noValidate className="flex flex-1 flex-col">
+				<div className="space-y-3">
 					<FormField
 						label="Mot de passe actuel"
 						type="password"
@@ -68,13 +65,13 @@ export function PasswordForm() {
 						autoComplete="new-password"
 						{...field("confirmPassword")}
 					/>
-				</CardContent>
-				<CardFooter className="mt-6 flex justify-end">
-					<Button type="submit" isDisabled={mutation.isPending}>
+				</div>
+				<div className="mt-auto flex justify-end pt-4">
+					<HudButton type="submit" isDisabled={mutation.isPending}>
 						{mutation.isPending ? "Modification…" : "Changer le mot de passe"}
-					</Button>
-				</CardFooter>
+					</HudButton>
+				</div>
 			</form>
-		</Card>
+		</HudPanel>
 	);
 }

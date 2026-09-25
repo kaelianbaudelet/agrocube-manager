@@ -30,6 +30,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
 		if (!session || session.userId !== payload.sub || session.expiresAt < new Date()) {
 			throw new UnauthorizedException("Session expirée");
 		}
-		return { ...session.user, sessionId: session.id };
+		return { ...session.user, sessionId: session.id, apiKeyId: null };
 	}
 }

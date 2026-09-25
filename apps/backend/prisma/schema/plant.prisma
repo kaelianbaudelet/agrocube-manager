@@ -1,0 +1,109 @@
+/// A plant cube (Arduino Yún). Authenticates on the /device socket with a static key.
+model Device {
+  id            String             @id @default(uuid())
+  name          String
+  /// SHA-256 of the device key: the key itself is only shown once, at creation.
+  apiKeyHash    String             @unique
+  /// UNINITIALIZED until the first telemetry frame is received.
+  state         DeviceState        @default(UNINITIALIZED)
+  initializedAt DateTime?
+  lastSeenAt    DateTime?
+  /// Grow lamp state, as last confirmed by the cube.
+  lampOn        Boolean            @default(false)
+  /// LED strip colour (a LAMP_COLORS key of @repo/shared), as last confirmed by the cube.
+  lampColor     String             @default("GROW")
+  createdAt     DateTime           @default(now())
+  readings      SensorReading[]
+  commands      Command[]
+  schedules     WateringSchedule[]
+}
+
+enum DeviceState {
+  UNINITIALIZED
+  ACTIVE
+}
+
+/// One telemetry frame. A null column means the sensor did not report.
+model SensorReading {
+  id           BigInt   @id @default(autoincrement())
+  deviceId     String
+  recordedAt   DateTime @default(now())
+  /// °C
+  temperature  Float?
+  /// %
+  soilMoisture Float?
+  /// %
+  light        Float?
+  /// % of the reservoir
+  waterLevel   Float?
+  device       Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId, recordedAt(sort: Desc)])
+}
+
+enum CommandType {
+  WATER
+  LAMP
+}
+
+enum CommandStatus {
+  PENDING
+  SENT
+  DONE
+  FAILED
+}
+
+/// An order sent to the cube (run the pump, switch the lamp), and its outcome.
+model Command {
+  id          String            @id @default(uuid())
+  deviceId    String
+  type        CommandType
+  /// WATER: pump run time.
+  durationMs  Int?
+  /// LAMP: requested lamp state.
+  lampOn      Boolean?
+  /// LAMP: requested strip colour (a LAMP_COLORS key).
+  lampColor   String?
+  status      CommandStatus     @default(PENDING)
+  error       String?
+  requestedBy String?
+  createdAt   DateTime          @default(now())
+  completedAt DateTime?
+  device      Device            @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  user        User?             @relation(fields: [requestedBy], references: [id], onDelete: SetNull)
+  /// Set when the order was fired by a watering schedule rather than by an operator.
+  scheduleId  String?
+  schedule    WateringSchedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+
+  @@index([deviceId, createdAt(sort: Desc)])
+}
+
+enum ScheduleRecurrence {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+/// Automatic watering: runs the pump at `time` on a recurring basis (BullMQ job scheduler).
+model WateringSchedule {
+  id         String             @id @default(uuid())
+  deviceId   String
+  /// "HH:MM", in the scheduler time zone (SCHEDULER_TZ).
+  time       String
+  durationMs Int
+  recurrence ScheduleRecurrence
+  /// WEEKLY: days of the week, 0 = Sunday … 6 = Saturday.
+  weekdays   Int[]
+  /// MONTHLY: day of the month (1-28, so every month has it).
+  dayOfMonth Int?
+  enabled    Boolean            @default(true)
+  lastRunAt  DateTime?
+  createdBy  String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  device     Device             @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  user       User?              @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  commands   Command[]
+
+  @@index([deviceId])
+}

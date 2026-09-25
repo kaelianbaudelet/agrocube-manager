@@ -24,7 +24,7 @@ let refreshPromise: Promise<string> | null = null;
 /**
  * Single-flight refresh: concurrent 401s share one /auth/refresh call.
  */
-function refreshAccessToken(): Promise<string> {
+export function refreshAccessToken(): Promise<string> {
 	if (!refreshPromise) {
 		refreshPromise = (async () => {
 			const { refreshToken, setTokens } = useAuthStore.getState();
@@ -71,4 +71,25 @@ export async function api<T>(endpoint: string, init: RequestInit = {}, retried =
 	if (!response.ok) throw await toApiError(response);
 	if (response.status === 204) return null as T;
 	return (await response.json()) as T;
+}
+
+/**
+ * fetch() with the access token, refreshed once on 401 — for streams (assistant chat) that api() can't parse.
+ */
+export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}, retried = false): Promise<Response> {
+	const headers = new Headers(init.headers);
+	const { token, logout } = useAuthStore.getState();
+	if (token) headers.set("Authorization", `Bearer ${token}`);
+	const response = await fetch(input, { ...init, headers });
+	if (response.status === 401 && !retried) {
+		try {
+			await refreshAccessToken();
+		} catch (error) {
+			logout();
+			throw error;
+		}
+		return authFetch(input, init, true);
+	}
+	if (!response.ok) throw await toApiError(response);
+	return response;
 }

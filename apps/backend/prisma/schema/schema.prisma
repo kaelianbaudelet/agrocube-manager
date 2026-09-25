@@ -9,15 +9,18 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  username  String    @unique
-  email     String    @unique
+  id        String             @id @default(uuid())
+  username  String             @unique
+  email     String             @unique
   firstName String
   lastName  String
   password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
   sessions  Session[]
+  commands  Command[]
+  schedules WateringSchedule[]
+  apiKeys   ApiKey[]
 }
 
 model Session {
@@ -27,6 +30,23 @@ model Session {
   expiresAt        DateTime
   createdAt        DateTime @default(now())
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Personal API key: lets scripts call the REST API as this user (`Authorization: Bearer agk_…`).
+model ApiKey {
+  id         String    @id @default(uuid())
+  userId     String
+  name       String
+  /// SHA-256 of the key: the key itself is only shown once, at creation.
+  keyHash    String    @unique
+  /// First characters of the key, to recognise it in the list.
+  prefix     String
+  expiresAt  DateTime
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

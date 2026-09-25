@@ -6,7 +6,8 @@ export interface JwtPayload {
 	jti?: string;
 }
 
-export type AuthUser = User & { sessionId: string };
+/** Signed in with a JWT (sessionId) or with a personal API key (apiKeyId). */
+export type AuthUser = User & { sessionId: string | null; apiKeyId: string | null };
 
 export interface RefreshUser {
 	sessionId: string;

@@ -1,12 +1,16 @@
+import { BullModule } from "@nestjs/bullmq";
 import { Module, StandardSchemaValidationPipe } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_FILTER, APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { AiModule } from "./ai/ai.module";
+import { ApiKeysModule } from "./api-keys/api-keys.module";
 import { AppController } from "./app.controller";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { PrismaExceptionFilter } from "./common/prisma-exception.filter";
-import { validateEnv } from "./config/env";
+import { type Env, validateEnv } from "./config/env";
+import { PlantModule } from "./plant/plant.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { UsersModule } from "./users/users.module";
 
@@ -14,9 +18,18 @@ import { UsersModule } from "./users/users.module";
 	imports: [
 		ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
 		ThrottlerModule.forRoot([{ ttl: 60_000, limit: 300 }]),
+		BullModule.forRootAsync({
+			inject: [ConfigService],
+			useFactory: (config: ConfigService<Env, true>) => ({
+				connection: { url: config.get("REDIS_URL", { infer: true }) }
+			})
+		}),
 		PrismaModule,
 		AuthModule,
-		UsersModule
+		UsersModule,
+		ApiKeysModule,
+		PlantModule,
+		AiModule
 	],
 	controllers: [AppController],
 	providers: [

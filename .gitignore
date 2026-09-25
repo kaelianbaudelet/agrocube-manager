@@ -8,3 +8,4 @@ coverage
 apps/backend/generated
 .DS_Store
 .superpowers
+.mock-device.json

@@ -5,6 +5,7 @@ import type { User } from "../../generated/prisma/client";
 import { AuthService } from "./auth.service";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { Public } from "./decorators/public.decorator";
+import { SessionOnly } from "./decorators/session-only.decorator";
 import { JwtRefreshGuard } from "./guards/jwt-refresh.guard";
 import { LocalAuthGuard } from "./guards/local-auth.guard";
 import type { RefreshUser } from "./types";
@@ -36,6 +37,7 @@ export class AuthController {
 		return this.authService.refresh(refreshUser.sessionId, refreshUser.refreshToken);
 	}
 
+	@SessionOnly()
 	@HttpCode(HttpStatus.NO_CONTENT)
 	@Post("logout")
 	logout(@CurrentUser("sessionId") sessionId: string) {

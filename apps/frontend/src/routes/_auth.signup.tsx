@@ -4,8 +4,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { FormField } from "@/components/form-field";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { HudButton } from "@/components/hud/hud-button";
+import { HudPanel } from "@/components/hud/panel";
 import { authApi } from "@/lib/endpoints";
 import { type FieldErrors, validate } from "@/lib/form";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -45,30 +45,33 @@ function SignUpPage() {
 	}
 
 	return (
-		<Card>
-			<CardHeader title="Créer un compte" description="Quelques infos et c'est parti" />
+		<HudPanel title="Nouvel opérateur" bodyClassName="p-4">
+			<p className="mb-4 text-muted-fg text-xs">Quelques infos et c'est parti</p>
 			<form onSubmit={onSubmit} noValidate>
-				<CardContent className="space-y-4">
+				<div className="space-y-3">
 					<FormField label="Nom d'utilisateur" autoComplete="username" {...field("username")} />
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-3">
 						<FormField label="Prénom" autoComplete="given-name" {...field("firstName")} />
 						<FormField label="Nom" autoComplete="family-name" {...field("lastName")} />
 					</div>
 					<FormField label="Email" type="email" autoComplete="email" {...field("email")} />
 					<FormField label="Mot de passe" type="password" autoComplete="new-password" {...field("password")} />
-				</CardContent>
-				<CardFooter className="mt-6 flex flex-col items-stretch gap-3">
-					<Button type="submit" isDisabled={mutation.isPending}>
+				</div>
+				<div className="mt-5 flex flex-col items-stretch gap-3">
+					<HudButton type="submit" isDisabled={mutation.isPending}>
 						{mutation.isPending ? "Création…" : "Créer mon compte"}
-					</Button>
-					<p className="text-center text-muted-fg text-sm">
+					</HudButton>
+					<p className="text-center text-muted-fg text-xs">
 						Déjà inscrit ?{" "}
-						<Link to="/signin" className="font-medium text-primary hover:underline">
+						<Link
+							to="/signin"
+							className="text-hud uppercase tracking-widest outline-none hover:hud-glow focus-visible:underline"
+						>
 							Se connecter
 						</Link>
 					</p>
-				</CardFooter>
+				</div>
 			</form>
-		</Card>
+		</HudPanel>
 	);
 }

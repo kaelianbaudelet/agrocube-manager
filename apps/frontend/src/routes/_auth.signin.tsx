@@ -1,11 +1,11 @@
 import { LoginSchema } from "@repo/shared";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { FormField } from "@/components/form-field";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { HudButton } from "@/components/hud/hud-button";
+import { HudPanel } from "@/components/hud/panel";
 import { authApi } from "@/lib/endpoints";
 import { type FieldErrors, validate } from "@/lib/form";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -44,25 +44,19 @@ function SignInPage() {
 	}
 
 	return (
-		<Card>
-			<CardHeader title="Connexion" description="Connecte-toi à ton compte" />
+		<HudPanel title="Connexion" bodyClassName="p-4">
+			<p className="mb-4 text-muted-fg text-xs">Connecte-toi à ton compte</p>
 			<form onSubmit={onSubmit} noValidate>
-				<CardContent className="space-y-4">
+				<div className="space-y-3">
 					<FormField label="Email" type="email" autoComplete="email" {...field("email")} />
 					<FormField label="Mot de passe" type="password" autoComplete="current-password" {...field("password")} />
-				</CardContent>
-				<CardFooter className="mt-6 flex flex-col items-stretch gap-3">
-					<Button type="submit" isDisabled={mutation.isPending}>
+				</div>
+				<div className="mt-5 flex flex-col items-stretch gap-3">
+					<HudButton type="submit" isDisabled={mutation.isPending}>
 						{mutation.isPending ? "Connexion…" : "Se connecter"}
-					</Button>
-					<p className="text-center text-muted-fg text-sm">
-						Pas de compte ?{" "}
-						<Link to="/signup" className="font-medium text-primary hover:underline">
-							Créer un compte
-						</Link>
-					</p>
-				</CardFooter>
+					</HudButton>
+				</div>
 			</form>
-		</Card>
+		</HudPanel>
 	);
 }

@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "tailwindcss-react-aria-components";
+/* Streamdown (assistant answers) ships Tailwind classes: let Tailwind see them. */
+@source "../node_modules/streamdown/dist/*.js";
 
 
 
@@ -20,6 +22,11 @@
     --color-ring: var(--ring);
     --color-bg: var(--bg);
     --color-fg: var(--fg);
+    /* shadcn names used by Streamdown (assistant answers): mapped onto the HUD palette. */
+    --color-background: var(--bg);
+    --color-foreground: var(--fg);
+    --color-muted-foreground: var(--muted-fg);
+    --color-primary-foreground: var(--primary-fg);
     --color-primary: var(--primary);
     --color-primary-fg: var(--primary-fg);
     --color-primary-subtle: var(--primary-subtle);
@@ -70,6 +77,12 @@
     --radius-3xl: var(--radius-3xl);
     --radius-4xl: var(--radius-4xl);
     --animate-spin-slow: spin 3s linear infinite;
+    --font-display: "Orbitron", "Share Tech Mono", ui-monospace, monospace;
+    --font-data: "Share Tech Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --color-hud: var(--hud);
+    --color-ok: var(--ok);
+    --color-warn: var(--warn);
+    --color-crit: var(--crit);
 }
 
 :root {
@@ -266,179 +279,473 @@
     }
 }
 
-/* Thèmes de couleur personnalisés */
-.theme-red {
-    --primary: oklch(0.546 0.245 25);
-    --primary-subtle: oklch(0.623 0.214 25 / 0.15);
-    --primary-subtle-fg: oklch(0.488 0.243 25);
-    --ring: oklch(0.546 0.245 25);
-    --sidebar-ring: oklch(0.546 0.245 25);
-    --sidebar-primary: oklch(0.623 0.214 25 / 0.15);
-    --sidebar-primary-fg: oklch(0.488 0.243 25);
-    --chart-1: oklch(0.546 0.245 25);
+/* ---------------------------------------------------------------------------
+ * HUD — sci-fi control-room theme for the plant cube dashboard.
+ * One dominant hue (--hud); status hues are reserved for sensor states.
+ * ------------------------------------------------------------------------- */
+/* Tokens live on <html class="hud-theme"> too, so portals (menus, popovers, toasts) inherit them. */
+.hud-theme,
+.hud {
+    color-scheme: dark;
+    --hud: oklch(0.84 0.14 200);
+    --ok: oklch(0.82 0.17 155);
+    --warn: oklch(0.83 0.16 80);
+    --crit: oklch(0.68 0.22 25);
+
+    --bg: oklch(0.13 0.02 235);
+    --fg: oklch(0.94 0.03 200);
+    --muted: oklch(0.18 0.03 230);
+    --muted-fg: oklch(0.7 0.05 215);
+    --primary: var(--hud);
+    --primary-fg: oklch(0.15 0.03 230);
+    --secondary: oklch(0.22 0.04 225);
+    --secondary-fg: var(--fg);
+    --accent: oklch(0.24 0.05 220);
+    --accent-fg: var(--fg);
+    --overlay: oklch(0.16 0.03 230);
+    --overlay-fg: var(--fg);
+    --border: color-mix(in oklab, var(--hud) 22%, transparent);
+    --input: color-mix(in oklab, var(--hud) 30%, transparent);
+    --ring: var(--hud);
+    --danger: var(--crit);
+    --danger-fg: oklch(0.98 0.01 20);
+    --success: var(--ok);
+    --warning: var(--warn);
 }
 
-.dark.theme-red, .theme-red.dark {
-    --primary: oklch(0.546 0.245 25);
-    --primary-subtle: oklch(0.623 0.214 25 / 0.1);
-    --primary-subtle-fg: oklch(0.707 0.165 25);
-    --ring: oklch(0.546 0.245 25);
-    --sidebar-ring: oklch(0.546 0.245 25);
-    --sidebar-primary: oklch(0.623 0.214 25 / 0.1);
-    --sidebar-primary-fg: oklch(0.707 0.165 25);
-    --chart-1: oklch(0.488 0.243 25);
+.hud {
+    background:
+        radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--hud) 9%, transparent), transparent 70%),
+        linear-gradient(color-mix(in oklab, var(--hud) 5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+        linear-gradient(90deg, color-mix(in oklab, var(--hud) 5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+        var(--bg);
+    color: var(--fg);
+    font-family: var(--font-data);
 }
 
-.theme-orange {
-    --primary: oklch(0.6 0.2 65);
-    --primary-subtle: oklch(0.65 0.2 65 / 0.15);
-    --primary-subtle-fg: oklch(0.488 0.243 65);
-    --ring: oklch(0.6 0.2 65);
-    --sidebar-ring: oklch(0.6 0.2 65);
-    --sidebar-primary: oklch(0.65 0.2 65 / 0.15);
-    --sidebar-primary-fg: oklch(0.488 0.243 65);
-    --chart-1: oklch(0.6 0.2 65);
+/* CRT scanlines over the whole screen. */
+.hud::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    background: repeating-linear-gradient(0deg, oklch(0 0 0 / 0.16) 0 1px, transparent 1px 3px);
 }
 
-.dark.theme-orange, .theme-orange.dark {
-    --primary: oklch(0.6 0.2 65);
-    --primary-subtle: oklch(0.65 0.2 65 / 0.1);
-    --primary-subtle-fg: oklch(0.707 0.165 65);
-    --ring: oklch(0.6 0.2 65);
-    --sidebar-ring: oklch(0.6 0.2 65);
-    --sidebar-primary: oklch(0.65 0.2 65 / 0.1);
-    --sidebar-primary-fg: oklch(0.707 0.165 65);
-    --chart-1: oklch(0.55 0.2 65);
+/* Panel with bracket corners, drawn with gradients (no extra markup). */
+@utility hud-panel {
+    --c: color-mix(in oklab, var(--hud) 85%, transparent);
+    --l: 10px;
+    position: relative;
+    border: 1px solid color-mix(in oklab, var(--hud) 18%, transparent);
+    background:
+        linear-gradient(var(--c), var(--c)) top left / var(--l) 2px no-repeat,
+        linear-gradient(var(--c), var(--c)) top left / 2px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) top right / var(--l) 2px no-repeat,
+        linear-gradient(var(--c), var(--c)) top right / 2px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom left / var(--l) 2px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom left / 2px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom right / var(--l) 2px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom right / 2px var(--l) no-repeat,
+        linear-gradient(180deg, color-mix(in oklab, var(--hud) 7%, transparent), color-mix(in oklab, var(--hud) 2%, transparent));
+    box-shadow: inset 0 0 28px color-mix(in oklab, var(--hud) 6%, transparent);
+    backdrop-filter: blur(2px);
 }
 
-.theme-yellow {
-    --primary: oklch(0.7 0.18 95);
-    --primary-subtle: oklch(0.75 0.18 95 / 0.15);
-    --primary-subtle-fg: oklch(0.488 0.243 95);
-    --ring: oklch(0.7 0.18 95);
-    --sidebar-ring: oklch(0.7 0.18 95);
-    --sidebar-primary: oklch(0.75 0.18 95 / 0.15);
-    --sidebar-primary-fg: oklch(0.488 0.243 95);
-    --chart-1: oklch(0.7 0.18 95);
+@utility hud-glow {
+    text-shadow: 0 0 10px color-mix(in oklab, currentColor 55%, transparent);
 }
 
-.dark.theme-yellow, .theme-yellow.dark {
-    --primary: oklch(0.7 0.18 95);
-    --primary-subtle: oklch(0.75 0.18 95 / 0.1);
-    --primary-subtle-fg: oklch(0.707 0.165 95);
-    --ring: oklch(0.7 0.18 95);
-    --sidebar-ring: oklch(0.7 0.18 95);
-    --sidebar-primary: oklch(0.75 0.18 95 / 0.1);
-    --sidebar-primary-fg: oklch(0.707 0.165 95);
-    --chart-1: oklch(0.65 0.18 95);
+@utility hud-glow-box {
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, currentColor 50%, transparent),
+        0 0 18px color-mix(in oklab, currentColor 35%, transparent),
+        inset 0 0 18px color-mix(in oklab, currentColor 18%, transparent);
 }
 
-.theme-green {
-    --primary: oklch(0.546 0.245 145);
-    --primary-subtle: oklch(0.623 0.214 145 / 0.15);
-    --primary-subtle-fg: oklch(0.488 0.243 145);
-    --ring: oklch(0.546 0.245 145);
-    --sidebar-ring: oklch(0.546 0.245 145);
-    --sidebar-primary: oklch(0.623 0.214 145 / 0.15);
-    --sidebar-primary-fg: oklch(0.488 0.243 145);
-    --chart-1: oklch(0.546 0.245 145);
+@keyframes hud-boot {
+    0% { opacity: 0; filter: brightness(2.5); clip-path: inset(0 0 100% 0); }
+    60% { opacity: 1; clip-path: inset(0 0 0 0); }
+    70% { filter: brightness(0.6); }
+    100% { filter: none; }
+}
+@keyframes hud-scan {
+    0% { transform: translateY(-10%); opacity: 0; }
+    10%, 90% { opacity: 1; }
+    100% { transform: translateY(110%); opacity: 0; }
+}
+@keyframes hud-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+@keyframes hud-flow {
+    to { stroke-dashoffset: -24; }
+}
+@keyframes hud-sway {
+    0%, 100% { transform: rotate(-1.2deg); }
+    50% { transform: rotate(1.2deg); }
+}
+@keyframes hud-wave {
+    to { transform: translateX(-50%); }
+}
+@keyframes hud-scan-y {
+    from { transform: translateY(0); }
+    to { transform: translateY(200px); }
+}
+@keyframes hud-spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes hud-loading {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(300%); }
+}
+@keyframes hud-drip {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(14px); opacity: 0; }
 }
 
-.dark.theme-green, .theme-green.dark {
-    --primary: oklch(0.546 0.245 145);
-    --primary-subtle: oklch(0.623 0.214 145 / 0.1);
-    --primary-subtle-fg: oklch(0.707 0.165 145);
-    --ring: oklch(0.546 0.245 145);
-    --sidebar-ring: oklch(0.546 0.245 145);
-    --sidebar-primary: oklch(0.623 0.214 145 / 0.1);
-    --sidebar-primary-fg: oklch(0.707 0.165 145);
-    --chart-1: oklch(0.488 0.243 145);
+.hud-boot { animation: hud-boot 0.7s ease-out both; }
+
+/* Browser autofill would paint inputs white/yellow. */
+.hud-input:-webkit-autofill,
+.hud-input:-webkit-autofill:hover,
+.hud-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--fg);
+    caret-color: var(--fg);
+    box-shadow: 0 0 0 1000px color-mix(in oklab, var(--hud) 8%, var(--bg)) inset;
+    transition: background-color 9999s;
+}
+.hud-input:focus {
+    box-shadow: 0 0 14px color-mix(in oklab, var(--hud) 25%, transparent);
+}
+.hud-input[data-invalid]:focus {
+    box-shadow: 0 0 14px color-mix(in oklab, var(--crit) 25%, transparent);
 }
 
-.theme-cyan {
-    --primary: oklch(0.6 0.15 190);
-    --primary-subtle: oklch(0.65 0.15 190 / 0.15);
-    --primary-subtle-fg: oklch(0.488 0.243 190);
-    --ring: oklch(0.6 0.15 190);
-    --sidebar-ring: oklch(0.6 0.15 190);
-    --sidebar-primary: oklch(0.65 0.15 190 / 0.15);
-    --sidebar-primary-fg: oklch(0.488 0.243 190);
-    --chart-1: oklch(0.6 0.15 190);
+/* Toasts (sonner) in HUD style. Sonner injects its own theme at runtime with [data-sonner-toaster]
+ * [data-sonner-theme=dark] (#000 background): the extra `html` gives these rules the upper hand. */
+html [data-sonner-toaster][data-sonner-theme] {
+    --normal-bg: color-mix(in oklab, var(--hud) 8%, var(--bg));
+    --normal-border: color-mix(in oklab, var(--hud) 45%, transparent);
+    --normal-text: var(--fg);
+    --success-bg: var(--normal-bg);
+    --success-border: color-mix(in oklab, var(--ok) 55%, transparent);
+    --success-text: var(--fg);
+    --error-bg: var(--normal-bg);
+    --error-border: color-mix(in oklab, var(--crit) 55%, transparent);
+    --error-text: var(--fg);
+    --warning-bg: var(--normal-bg);
+    --warning-border: color-mix(in oklab, var(--warn) 55%, transparent);
+    --warning-text: var(--fg);
+    --info-bg: var(--normal-bg);
+    --info-border: var(--normal-border);
+    --info-text: var(--fg);
+    --border-radius: 0;
+    font-family: var(--font-data);
+}
+html [data-sonner-toaster] [data-sonner-toast] {
+    --accent: var(--hud);
+    letter-spacing: 0.04em;
+    font-size: 12px;
+    border-left-width: 3px;
+    border-left-color: var(--accent);
+    backdrop-filter: blur(4px);
+    box-shadow:
+        0 0 18px color-mix(in oklab, var(--accent) 22%, transparent),
+        inset 0 0 18px color-mix(in oklab, var(--accent) 8%, transparent);
+}
+html [data-sonner-toaster] [data-sonner-toast][data-type="success"] { --accent: var(--ok); }
+/* Without richColors every type uses --normal-*: errors get their own red panel here. */
+html [data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+    --accent: var(--crit);
+    --normal-bg: color-mix(in oklab, var(--crit) 16%, var(--bg));
+    --normal-border: color-mix(in oklab, var(--crit) 60%, transparent);
+    --normal-text: color-mix(in oklab, var(--crit) 45%, var(--fg));
+}
+html [data-sonner-toaster] [data-sonner-toast][data-type="warning"] { --accent: var(--warn); }
+html [data-sonner-toaster] [data-sonner-toast] [data-icon] { color: var(--accent); }
+.hud-pulse { animation: hud-pulse 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+    .hud *, .hud *::before, .hud *::after {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
-.dark.theme-cyan, .theme-cyan.dark {
-    --primary: oklch(0.6 0.15 190);
-    --primary-subtle: oklch(0.65 0.15 190 / 0.1);
-    --primary-subtle-fg: oklch(0.707 0.165 190);
-    --ring: oklch(0.6 0.15 190);
-    --sidebar-ring: oklch(0.6 0.15 190);
-    --sidebar-primary: oklch(0.65 0.15 190 / 0.1);
-    --sidebar-primary-fg: oklch(0.707 0.165 190);
-    --chart-1: oklch(0.55 0.15 190);
+/* ---------------------------------------------------------------------------
+ * Assistant answers (Streamdown) in the HUD style. Elements are matched on
+ * Streamdown's data-streamdown markers; being unlayered, these rules win over
+ * the Tailwind utilities Streamdown ships.
+ * ------------------------------------------------------------------------- */
+.assistant-md, [data-streamdown$="-fullscreen"], [data-streamdown="link-safety-modal"] {
+    --md-line: color-mix(in oklab, var(--hud) 22%, transparent);
+}
+.assistant-md {
+    color: var(--fg);
+}
+.assistant-md > * + * { margin-top: 0.75em; }
+/* HUD corners are square; Streamdown's own surfaces (bg-sidebar…) are replaced below. */
+.assistant-md * { border-radius: 0; }
+.assistant-md p { line-height: 1.65; }
+
+/* Titles: display font, uppercase, diamond bullet and a fading underline (like the panel headers). */
+.assistant-md [data-streamdown^="heading-"] {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.1em 0 0.5em;
+    padding-bottom: 0.3rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--hud);
+    border-bottom: 1px solid transparent;
+    border-image: linear-gradient(90deg, var(--md-line), transparent) 1;
+    text-shadow: 0 0 8px color-mix(in oklab, var(--hud) 45%, transparent);
+}
+.assistant-md [data-streamdown^="heading-"]::before {
+    content: "";
+    width: 0.4rem;
+    height: 0.4rem;
+    flex-shrink: 0;
+    rotate: 45deg;
+    background: var(--hud);
+    box-shadow: 0 0 6px var(--hud);
+}
+.assistant-md [data-streamdown="heading-1"] { font-size: 0.85rem; }
+.assistant-md > [data-streamdown^="heading-"]:first-child { margin-top: 0; }
+
+.assistant-md [data-streamdown="strong"], .assistant-md strong {
+    color: var(--hud);
+    font-weight: 600;
+    text-shadow: 0 0 6px color-mix(in oklab, var(--hud) 40%, transparent);
+}
+.assistant-md em { color: color-mix(in oklab, var(--fg) 80%, var(--hud)); }
+
+.assistant-md [data-streamdown="link"], .assistant-md a {
+    color: var(--hud);
+    text-decoration: underline dashed color-mix(in oklab, var(--hud) 60%, transparent);
+    text-underline-offset: 3px;
+    transition: text-shadow 0.2s;
+}
+.assistant-md [data-streamdown="link"]:hover { text-shadow: 0 0 8px var(--hud); }
+
+/* Lists: diamond markers, and zero-padded HUD counters ("01") for ordered lists. */
+.assistant-md :is([data-streamdown="unordered-list"], [data-streamdown="ordered-list"]) {
+    margin-left: 0;
+    padding-left: 0;
+    list-style: none;
+}
+.assistant-md [data-streamdown="list-item"] {
+    position: relative;
+    padding-left: 1.4rem;
+    line-height: 1.6;
+}
+.assistant-md [data-streamdown="list-item"] + [data-streamdown="list-item"] { margin-top: 0.3em; }
+.assistant-md [data-streamdown="unordered-list"] > [data-streamdown="list-item"]::before {
+    content: "";
+    position: absolute;
+    left: 0.35rem;
+    top: 0.62em;
+    width: 0.32rem;
+    height: 0.32rem;
+    rotate: 45deg;
+    background: var(--hud);
+    box-shadow: 0 0 5px var(--hud);
+}
+.assistant-md [data-streamdown="ordered-list"] { counter-reset: md-item; }
+.assistant-md [data-streamdown="ordered-list"] > [data-streamdown="list-item"] { counter-increment: md-item; padding-left: 1.8rem; }
+.assistant-md [data-streamdown="ordered-list"] > [data-streamdown="list-item"]::before {
+    content: counter(md-item, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.1em;
+    font-family: var(--font-data);
+    font-size: 0.72rem;
+    color: var(--hud);
+}
+.assistant-md [data-streamdown="list-item"] > :is([data-streamdown="unordered-list"], [data-streamdown="ordered-list"]) { margin-top: 0.3em; }
+
+/* Code */
+.assistant-md [data-streamdown="inline-code"], .assistant-md code:not(pre code) {
+    padding: 0.05em 0.4em;
+    border: 1px solid var(--md-line);
+    background: color-mix(in oklab, var(--hud) 10%, transparent);
+    color: var(--hud);
+    font-family: var(--font-data);
+    font-size: 0.85em;
+    border-radius: 0;
+}
+.assistant-md [data-streamdown="code-block"] {
+    border: 1px solid var(--md-line);
+    border-left: 2px solid var(--hud);
+    border-radius: 0;
+    background: color-mix(in oklab, var(--hud) 4%, var(--bg));
+    overflow: hidden;
+}
+.assistant-md [data-streamdown="code-block-header"] {
+    font-family: var(--font-display);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--hud);
+}
+.assistant-md [data-streamdown="code-block-body"], .assistant-md pre {
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+    font-family: var(--font-data);
+    font-size: 0.8rem;
+}
+.assistant-md [data-streamdown="code-block-actions"] {
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+}
+.assistant-md :is([data-streamdown="code-block-copy-button"], [data-streamdown="code-block-download-button"]) {
+    color: var(--muted-fg);
+}
+.assistant-md :is([data-streamdown="code-block-copy-button"], [data-streamdown="code-block-download-button"]):hover { color: var(--hud); }
+
+/* Quotes: a lit bar on the left, like a HUD side note. */
+.assistant-md [data-streamdown="blockquote"], .assistant-md blockquote {
+    margin-left: 0;
+    padding: 0.4rem 0.8rem;
+    border-left: 2px solid var(--hud);
+    background: linear-gradient(90deg, color-mix(in oklab, var(--hud) 10%, transparent), transparent);
+    color: var(--muted-fg);
+    font-style: normal;
 }
 
-.theme-purple {
-    --primary: oklch(0.546 0.245 290);
-    --primary-subtle: oklch(0.623 0.214 290 / 0.15);
-    --primary-subtle-fg: oklch(0.488 0.243 290);
-    --ring: oklch(0.546 0.245 290);
-    --sidebar-ring: oklch(0.546 0.245 290);
-    --sidebar-primary: oklch(0.623 0.214 290 / 0.15);
-    --sidebar-primary-fg: oklch(0.488 0.243 290);
-    --chart-1: oklch(0.546 0.245 290);
+/* Separator: a line that fades out on both sides. */
+.assistant-md [data-streamdown="horizontal-rule"], .assistant-md hr {
+    height: 1px;
+    border: 0;
+    margin: 1.2em 0;
+    background: linear-gradient(90deg, transparent, var(--hud), transparent);
+    opacity: 0.5;
 }
 
-.dark.theme-purple, .theme-purple.dark {
-    --primary: oklch(0.546 0.245 290);
-    --primary-subtle: oklch(0.623 0.214 290 / 0.1);
-    --primary-subtle-fg: oklch(0.707 0.165 290);
-    --ring: oklch(0.546 0.245 290);
-    --sidebar-ring: oklch(0.546 0.245 290);
-    --sidebar-primary: oklch(0.623 0.214 290 / 0.1);
-    --sidebar-primary-fg: oklch(0.707 0.165 290);
-    --chart-1: oklch(0.488 0.243 290);
+/* Tables: data grid with uppercase display headers and tabular figures. Only the inner box keeps a frame. */
+.assistant-md [data-streamdown="table-wrapper"] {
+    border: 0;
+    padding: 0;
+    background: transparent;
+}
+.assistant-md [data-streamdown="table-wrapper"] > div:has(> [data-streamdown="table"]) {
+    border: 1px solid var(--md-line);
+    border-left: 2px solid var(--hud);
+    background: color-mix(in oklab, var(--hud) 3%, transparent);
+}
+:where(.assistant-md, [data-streamdown="table-fullscreen"]) [data-streamdown="table"] { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+:where(.assistant-md, [data-streamdown="table-fullscreen"]) [data-streamdown="table-header"] { background: color-mix(in oklab, var(--hud) 10%, transparent); }
+:where(.assistant-md, [data-streamdown="table-fullscreen"]) [data-streamdown="table-header-cell"] {
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid var(--hud);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--hud);
+}
+:where(.assistant-md, [data-streamdown="table-fullscreen"]) [data-streamdown="table-cell"] {
+    padding: 0.4rem 0.75rem;
+    border-top: 1px solid color-mix(in oklab, var(--hud) 12%, transparent);
+    font-variant-numeric: tabular-nums;
+}
+:where(.assistant-md, [data-streamdown="table-fullscreen"]) [data-streamdown="table-row"]:hover { background: color-mix(in oklab, var(--hud) 6%, transparent); }
+.assistant-md [data-streamdown="table-wrapper"] button { color: var(--muted-fg); }
+.assistant-md [data-streamdown="table-wrapper"] button:hover { color: var(--hud); }
+
+/* Streamdown menus (copy / download a table or diagram): HUD dropdown. */
+.assistant-md div.top-full {
+    padding: 0.25rem 0;
+    border: 1px solid color-mix(in oklab, var(--hud) 40%, transparent);
+    background: color-mix(in oklab, var(--bg) 95%, transparent);
+    box-shadow: 0 0 18px color-mix(in oklab, var(--hud) 18%, transparent);
+    backdrop-filter: blur(4px);
+}
+.assistant-md div.top-full > button {
+    padding: 0.45rem 0.8rem;
+    font-family: var(--font-data);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--fg);
+}
+.assistant-md div.top-full > button:hover { background: color-mix(in oklab, var(--hud) 15%, transparent); color: var(--hud); }
+
+/* Streamdown overlays are portaled to <body>, outside .assistant-md: styled globally. */
+:is([data-streamdown$="-fullscreen"], [data-streamdown="link-safety-modal"]),
+:is([data-streamdown$="-fullscreen"], [data-streamdown="link-safety-modal"]) * {
+    border-radius: 0;
+}
+[data-streamdown$="-fullscreen"] {
+    color: var(--fg);
+    font-family: var(--font-data);
+    background:
+        linear-gradient(color-mix(in oklab, var(--hud) 5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+        linear-gradient(90deg, color-mix(in oklab, var(--hud) 5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+        color-mix(in oklab, var(--bg) 97%, transparent);
+    backdrop-filter: blur(6px);
+}
+/* Fullscreen table: one HUD frame around the grid. */
+[data-streamdown="table-fullscreen"] :has(> [data-streamdown="table"]) {
+    border: 1px solid var(--md-line);
+    border-left: 2px solid var(--hud);
+    background: color-mix(in oklab, var(--hud) 3%, transparent);
+}
+:is([data-streamdown$="-fullscreen"], [data-streamdown="link-safety-modal"]) button { color: var(--muted-fg); }
+:is([data-streamdown$="-fullscreen"], [data-streamdown="link-safety-modal"]) button:hover {
+    color: var(--hud);
+    background: color-mix(in oklab, var(--hud) 12%, transparent);
 }
 
-.theme-pink {
-    --primary: oklch(0.546 0.245 330);
-    --primary-subtle: oklch(0.623 0.214 330 / 0.15);
-    --primary-subtle-fg: oklch(0.488 0.243 330);
-    --ring: oklch(0.546 0.245 330);
-    --sidebar-ring: oklch(0.546 0.245 330);
-    --sidebar-primary: oklch(0.623 0.214 330 / 0.15);
-    --sidebar-primary-fg: oklch(0.488 0.243 330);
-    --chart-1: oklch(0.546 0.245 330);
+/* External link confirmation: a HUD dialog. */
+[data-streamdown="link-safety-modal"] {
+    background: color-mix(in oklab, var(--bg) 70%, transparent);
+    backdrop-filter: blur(4px);
+    font-family: var(--font-data);
+}
+[data-streamdown="link-safety-modal"] > div {
+    border: 1px solid color-mix(in oklab, var(--hud) 35%, transparent);
+    border-top: 2px solid var(--hud);
+    background: color-mix(in oklab, var(--hud) 4%, var(--bg));
+    color: var(--fg);
+    box-shadow: 0 0 28px color-mix(in oklab, var(--hud) 20%, transparent);
+}
+[data-streamdown="link-safety-modal"] > div > div:first-of-type > div:first-child {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--hud);
+}
+[data-streamdown="link-safety-modal"] .font-mono {
+    border: 1px solid var(--md-line);
+    background: color-mix(in oklab, var(--hud) 8%, transparent);
+    color: var(--hud);
+    font-family: var(--font-data);
+}
+[data-streamdown="link-safety-modal"] .flex-1 {
+    border: 1px solid color-mix(in oklab, var(--hud) 35%, transparent);
+    background: transparent;
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg);
+}
+[data-streamdown="link-safety-modal"] .flex-1:last-child {
+    border-color: var(--hud);
+    background: color-mix(in oklab, var(--hud) 12%, transparent);
+    color: var(--hud);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--hud) 30%, transparent);
 }
 
-.dark.theme-pink, .theme-pink.dark {
-    --primary: oklch(0.546 0.245 330);
-    --primary-subtle: oklch(0.623 0.214 330 / 0.1);
-    --primary-subtle-fg: oklch(0.707 0.165 330);
-    --ring: oklch(0.546 0.245 330);
-    --sidebar-ring: oklch(0.546 0.245 330);
-    --sidebar-primary: oklch(0.623 0.214 330 / 0.1);
-    --sidebar-primary-fg: oklch(0.707 0.165 330);
-    --chart-1: oklch(0.488 0.243 330);
-}
-
-.theme-rose {
-    --primary: oklch(0.546 0.245 350);
-    --primary-subtle: oklch(0.623 0.214 350 / 0.15);
-    --primary-subtle-fg: oklch(0.488 0.243 350);
-    --ring: oklch(0.546 0.245 350);
-    --sidebar-ring: oklch(0.546 0.245 350);
-    --sidebar-primary: oklch(0.623 0.214 350 / 0.15);
-    --sidebar-primary-fg: oklch(0.488 0.243 350);
-    --chart-1: oklch(0.546 0.245 350);
-}
-
-.dark.theme-rose, .theme-rose.dark {
-    --primary: oklch(0.546 0.245 350);
-    --primary-subtle: oklch(0.623 0.214 350 / 0.1);
-    --primary-subtle-fg: oklch(0.707 0.165 350);
-    --ring: oklch(0.546 0.245 350);
-    --sidebar-ring: oklch(0.546 0.245 350);
-    --sidebar-primary: oklch(0.623 0.214 350 / 0.1);
-    --sidebar-primary-fg: oklch(0.707 0.165 350);
-    --chart-1: oklch(0.488 0.243 350);
-}

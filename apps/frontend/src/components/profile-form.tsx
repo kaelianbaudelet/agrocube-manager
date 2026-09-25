@@ -3,8 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { FormField } from "@/components/form-field";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { HudButton } from "@/components/hud/hud-button";
+import { HudPanel } from "@/components/hud/panel";
 import { usersApi } from "@/lib/endpoints";
 import { type FieldErrors, validate } from "@/lib/form";
 import { queryClient } from "@/lib/query-client";
@@ -51,23 +51,23 @@ export function ProfileForm({ user }: { user: User }) {
 	}
 
 	return (
-		<Card>
-			<CardHeader title="Informations" description="Ton nom d'utilisateur, ton nom et ton email" />
-			<form onSubmit={onSubmit} noValidate>
-				<CardContent className="space-y-4">
+		<HudPanel title="Identité" bodyClassName="flex flex-col p-3">
+			<p className="mb-3 text-muted-fg text-xs">Ton nom d'utilisateur, ton nom et ton email</p>
+			<form onSubmit={onSubmit} noValidate className="flex flex-1 flex-col">
+				<div className="space-y-3">
 					<FormField label="Nom d'utilisateur" autoComplete="username" {...field("username")} />
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-3">
 						<FormField label="Prénom" autoComplete="given-name" {...field("firstName")} />
 						<FormField label="Nom" autoComplete="family-name" {...field("lastName")} />
 					</div>
 					<FormField label="Email" type="email" autoComplete="email" {...field("email")} />
-				</CardContent>
-				<CardFooter className="mt-6 flex justify-end">
-					<Button type="submit" isDisabled={mutation.isPending}>
+				</div>
+				<div className="mt-auto flex justify-end pt-4">
+					<HudButton type="submit" isDisabled={mutation.isPending}>
 						{mutation.isPending ? "Enregistrement…" : "Enregistrer"}
-					</Button>
-				</CardFooter>
+					</HudButton>
+				</div>
 			</form>
-		</Card>
+		</HudPanel>
 	);
 }
