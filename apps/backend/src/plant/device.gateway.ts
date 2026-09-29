@@ -1,4 +1,5 @@
 import { Logger, type OnModuleDestroy } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
 	type OnGatewayConnection,
 	type OnGatewayDisconnect,
@@ -19,6 +20,7 @@ import {
 	toLampColor
 } from "@repo/shared";
 import type { Namespace, Socket } from "socket.io";
+import type { Env } from "../config/env";
 import { DashboardGateway } from "./dashboard.gateway";
 import { PlantService } from "./plant.service";
 
@@ -35,6 +37,15 @@ interface DeviceSocketData {
 }
 
 const room = (deviceId: string) => `device:${deviceId}`;
+
+/** Only the ends of a key, to identify it in production logs without leaking it. */
+const maskKey = (key: string) => (key.length > 12 ? `${key.slice(0, 8)}…${key.slice(-4)}` : "***");
+
+/** Client address, behind a proxy if any. */
+const clientIp = (socket: Socket) => {
+	const forwarded = socket.handshake.headers["x-forwarded-for"];
+	return (typeof forwarded === "string" ? forwarded.split(",")[0]?.trim() : undefined) || socket.handshake.address;
+};
 
 const lampMessage = (id: string, on: boolean, color: LampColor): DeviceCommandMessage => ({
 	id,
@@ -57,15 +68,27 @@ export class DeviceGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
 	constructor(
 		private readonly plant: PlantService,
-		private readonly dashboard: DashboardGateway
+		private readonly dashboard: DashboardGateway,
+		private readonly config: ConfigService<Env, true>
 	) {}
 
 	afterInit(server: Namespace) {
 		server.use(async (socket, next) => {
 			const header = socket.handshake.headers.authorization;
 			const key = socket.handshake.auth?.token ?? (header?.startsWith("Bearer ") ? header.slice(7) : undefined);
-			const device = typeof key === "string" && key ? await this.plant.findDeviceByKey(key) : null;
-			if (!device) return next(new Error("unauthorized"));
+			const ip = clientIp(socket);
+			if (typeof key !== "string" || !key) {
+				this.logger.warn(`Tentative de connexion cube sans clé depuis ${ip}`);
+				return next(new Error("unauthorized"));
+			}
+			// Full key in development so a cube's key can be read back from the logs; masked otherwise.
+			const shownKey = this.config.get("NODE_ENV", { infer: true }) === "development" ? key : maskKey(key);
+			const device = await this.plant.findDeviceByKey(key);
+			if (!device) {
+				this.logger.warn(`Clé cube refusée depuis ${ip} : ${shownKey}`);
+				return next(new Error("unauthorized"));
+			}
+			this.logger.log(`Handshake cube OK : ${device.name} depuis ${ip} (${shownKey})`);
 			socket.data = {
 				deviceId: device.id,
 				deviceName: device.name,
@@ -87,6 +110,7 @@ export class DeviceGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 			this.guard("telemetry", async (payload: unknown, ack?: Ack) => {
 				const parsed = TelemetrySchema.safeParse(payload);
 				if (!parsed.success) return ack?.({ ok: false, error: parsed.error.issues[0]?.message });
+				this.logger.debug(`Télémétrie de ${deviceName} : ${JSON.stringify(parsed.data)}`);
 				const reading = await this.plant.saveTelemetry(deviceId, parsed.data);
 				this.dashboard.emitTelemetry({ deviceId, reading });
 				ack?.({ ok: true });

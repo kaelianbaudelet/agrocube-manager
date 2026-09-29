@@ -5,6 +5,7 @@ import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
+import type { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { SocketIoAdapter } from "./common/socket-io.adapter";
@@ -22,6 +23,16 @@ async function bootstrap() {
 	// Assistant conversations are sent whole with each message: allow more than the 100 kB default.
 	// biome-ignore lint/correctness/useHookAtTopLevel: NestJS method, not a React hook
 	app.useBodyParser("json", { limit: "2mb" });
+	if (config.get("NODE_ENV", { infer: true }) === "development") {
+		// One line per HTTP request. Socket.IO traffic bypasses Express: cubes are logged by DeviceGateway.
+		app.use((req: Request, res: Response, next: NextFunction) => {
+			const start = Date.now();
+			res.on("finish", () =>
+				Logger.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - start}ms ${req.ip}`, "HTTP")
+			);
+			next();
+		});
+	}
 	app.enableCors({ origin: config.get("FRONTEND_URL", { infer: true }) });
 	// biome-ignore lint/correctness/useHookAtTopLevel: NestJS method, not a React hook
 	app.useWebSocketAdapter(new SocketIoAdapter(app, config.get("FRONTEND_URL", { infer: true })));
