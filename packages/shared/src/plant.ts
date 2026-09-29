@@ -87,7 +87,7 @@ export interface CreatedDevice {
 	key: string;
 }
 
-export const READING_RANGES = ["1h", "24h", "7d"] as const;
+export const READING_RANGES = ["1h", "24h", "7d", "30d"] as const;
 export type ReadingRange = (typeof READING_RANGES)[number];
 export const ReadingsQuerySchema = z.object({ range: z.enum(READING_RANGES).default("1h") });
 export type ReadingsQuery = z.infer<typeof ReadingsQuerySchema>;

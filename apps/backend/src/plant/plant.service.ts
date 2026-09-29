@@ -19,7 +19,8 @@ import { toCommand, toDevice, toReading } from "./plant.mapper";
 const RANGES: Record<ReadingRange, { ms: number; bucketSec: number }> = {
 	"1h": { ms: 3_600_000, bucketSec: 30 },
 	"24h": { ms: 86_400_000, bucketSec: 720 },
-	"7d": { ms: 604_800_000, bucketSec: 5040 }
+	"7d": { ms: 604_800_000, bucketSec: 5040 },
+	"30d": { ms: 2_592_000_000, bucketSec: 21600 }
 };
 
 /** Readings with a recordedAt further in the past are rejected (bad RTC, replays). */

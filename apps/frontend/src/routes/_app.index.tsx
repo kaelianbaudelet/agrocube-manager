@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_app/")({
 	component: DashboardPage
 });
 
-const RANGE_LABEL: Record<ReadingRange, string> = { "1h": "1H", "24h": "24H", "7d": "7J" };
+const RANGE_LABEL: Record<ReadingRange, string> = { "1h": "1H", "24h": "24H", "7d": "7J", "30d": "30J" };
 
 const tabClass =
 	"cursor-pointer px-1.5 py-0.5 text-[10px] text-muted-fg tracking-widest outline-none hover:text-fg focus-visible:ring-1 focus-visible:ring-hud selected:bg-hud/15 selected:text-hud";

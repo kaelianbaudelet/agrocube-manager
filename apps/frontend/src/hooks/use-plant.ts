@@ -30,7 +30,7 @@ export const plantKeys = {
 };
 
 /** History is averaged per bucket server-side: refetch once per bucket. */
-const REFETCH_MS: Record<ReadingRange, number> = { "1h": 30_000, "24h": 300_000, "7d": 900_000 };
+const REFETCH_MS: Record<ReadingRange, number> = { "1h": 30_000, "24h": 300_000, "7d": 900_000, "30d": 3_600_000 };
 
 export const useDevices = () => useQuery({ queryKey: plantKeys.devices, queryFn: plantApi.devices });
 

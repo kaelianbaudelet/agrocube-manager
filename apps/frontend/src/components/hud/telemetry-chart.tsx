@@ -2,7 +2,7 @@ import type { ReadingRange, SensorKey, SensorReading } from "@repo/shared";
 import { type PointerEvent, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { comfortZone, formatValue, SENSORS } from "./sensors";
 
-const RANGE_MS: Record<ReadingRange, number> = { "1h": 3_600_000, "24h": 86_400_000, "7d": 604_800_000 };
+const RANGE_MS: Record<ReadingRange, number> = { "1h": 3_600_000, "24h": 86_400_000, "7d": 604_800_000, "30d": 2_592_000_000 };
 /** A hole longer than this fraction of the range (device offline) breaks the line. */
 const GAP_FRACTION = 0.1;
 const PAD = { top: 6, right: 8, bottom: 16, left: 26 };
@@ -25,7 +25,7 @@ function useSize<T extends HTMLElement>() {
 const formatTime = (t: number, range: ReadingRange) =>
 	new Date(t).toLocaleString(
 		"fr-FR",
-		range === "7d" ? { weekday: "short", hour: "2-digit" } : { hour: "2-digit", minute: "2-digit" }
+		range === "30d" ? { day: "numeric", month: "short" } : range === "7d" ? { weekday: "short", hour: "2-digit" } : { hour: "2-digit", minute: "2-digit" }
 	);
 
 interface TelemetryChartProps {
@@ -203,6 +203,8 @@ export function TelemetryChart({ sensor, range, readings, live, now }: Telemetry
 					</p>
 					<p className="text-muted-fg">
 						{new Date(hovered.t).toLocaleString("fr-FR", {
+							month: range === "30d" ? "short" : undefined,
+							day: range === "30d" ? "numeric" : undefined,
 							weekday: range === "7d" ? "short" : undefined,
 							hour: "2-digit",
 							minute: "2-digit",
